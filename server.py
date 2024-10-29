@@ -53,12 +53,20 @@ engine = create_engine(DATABASEURI)
 # Here we create a test table and insert some values in it
 
 with engine.connect() as conn:
-    conn.execute("""DROP TABLE IF EXISTS test;""")
-    conn.execute("""CREATE TABLE IF NOT EXISTS test (
-      id serial,
+    # Drop the table if it exists
+    conn.execute(text("""DROP TABLE IF EXISTS test;"""))
+    
+    # Create the table if it does not exist
+    conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
+      id serial PRIMARY KEY,
       name text
-    );""")
-    conn.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
+    );"""))
+    
+    # Insert records into the table
+    conn.execute(text("""INSERT INTO test(name) VALUES 
+      ('grace hopper'), 
+      ('alan turing'), 
+      ('ada lovelace');"""))
 
 
 
