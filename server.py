@@ -47,157 +47,157 @@ DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/proj1part2
 #
 # This line creates a database engine that knows how to connect to the URI above
 #
-engine = create_engine(DATABASEURI)
+# engine = create_engine(DATABASEURI)
 
 
-# Here we create a test table and insert some values in it
+# # Here we create a test table and insert some values in it
 
-with engine.connect() as conn:
-    # Drop the table if it exists
-    conn.execute(text("""DROP TABLE IF EXISTS test;"""))
+# with engine.connect() as conn:
+#     # Drop the table if it exists
+#     conn.execute(text("""DROP TABLE IF EXISTS test;"""))
     
-    # Create the table if it does not exist
-    conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
-      id serial PRIMARY KEY,
-      name text
-    );"""))
+#     # Create the table if it does not exist
+#     conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
+#       id serial PRIMARY KEY,
+#       name text
+#     );"""))
     
-    # Insert records into the table
-    conn.execute(text("""INSERT INTO test(name) VALUES 
-      ('grace hopper'), 
-      ('alan turing'), 
-      ('ada lovelace');"""))
+#     # Insert records into the table
+#     conn.execute(text("""INSERT INTO test(name) VALUES 
+#       ('grace hopper'), 
+#       ('alan turing'), 
+#       ('ada lovelace');"""))
 
 
 
-@app.before_request
-def before_request():
-  """
-  This function is run at the beginning of every web request 
-  (every time you enter an address in the web browser).
-  We use it to setup a database connection that can be used throughout the request
+# @app.before_request
+# def before_request():
+#   """
+#   This function is run at the beginning of every web request 
+#   (every time you enter an address in the web browser).
+#   We use it to setup a database connection that can be used throughout the request
 
-  The variable g is globally accessible
-  """
-  try:
-    g.conn = engine.connect()
-  except:
-    print("uh oh, problem connecting to database")
-    import traceback; traceback.print_exc()
-    g.conn = None
+#   The variable g is globally accessible
+#   """
+#   try:
+#     g.conn = engine.connect()
+#   except:
+#     print("uh oh, problem connecting to database")
+#     import traceback; traceback.print_exc()
+#     g.conn = None
 
-@app.teardown_request
-def teardown_request(exception):
-  """
-  At the end of the web request, this makes sure to close the database connection.
-  If you don't the database could run out of memory!
-  """
-  try:
-    g.conn.close()
-  except Exception as e:
-    pass
-
-
-#
-# @app.route is a decorator around index() that means:
-#   run index() whenever the user tries to access the "/" path using a GET request
-#
-# If you wanted the user to go to e.g., localhost:8111/foobar/ with POST or GET then you could use
-#
-#       @app.route("/foobar/", methods=["POST", "GET"])
-#
-# PROTIP: (the trailing / in the path is important)
-# 
-# see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
-# see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
-#
-@app.route('/')
-def index():
-  """
-  request is a special object that Flask provides to access web request information:
-
-  request.method:   "GET" or "POST"
-  request.form:     if the browser submitted a form, this contains the data in the form
-  request.args:     dictionary of URL arguments e.g., {a:1, b:2} for http://localhost?a=1&b=2
-
-  See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
-  """
-
-  # DEBUG: this is debugging code to see what request looks like
-  print(request.args)
+# @app.teardown_request
+# def teardown_request(exception):
+#   """
+#   At the end of the web request, this makes sure to close the database connection.
+#   If you don't the database could run out of memory!
+#   """
+#   try:
+#     g.conn.close()
+#   except Exception as e:
+#     pass
 
 
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute("SELECT name FROM test")
-  names = []
-  for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
-  cursor.close()
+# #
+# # @app.route is a decorator around index() that means:
+# #   run index() whenever the user tries to access the "/" path using a GET request
+# #
+# # If you wanted the user to go to e.g., localhost:8111/foobar/ with POST or GET then you could use
+# #
+# #       @app.route("/foobar/", methods=["POST", "GET"])
+# #
+# # PROTIP: (the trailing / in the path is important)
+# # 
+# # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
+# # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
+# #
+# @app.route('/')
+# def index():
+#   """
+#   request is a special object that Flask provides to access web request information:
 
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
-  context = dict(data = names)
+#   request.method:   "GET" or "POST"
+#   request.form:     if the browser submitted a form, this contains the data in the form
+#   request.args:     dictionary of URL arguments e.g., {a:1, b:2} for http://localhost?a=1&b=2
+
+#   See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
+#   """
+
+#   # DEBUG: this is debugging code to see what request looks like
+#   print(request.args)
 
 
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
+#   #
+#   # example of a database query
+#   #
+#   cursor = g.conn.execute("SELECT name FROM test")
+#   names = []
+#   for result in cursor:
+#     names.append(result['name'])  # can also be accessed using result[0]
+#   cursor.close()
 
-#
-# This is an example of a different path.  You can see it at
-# 
-#     localhost:8111/another
-#
-# notice that the functio name is another() rather than index()
-# the functions for each app.route needs to have different names
-#
-@app.route('/another')
-def another():
-  return render_template("anotherfile.html")
+#   #
+#   # Flask uses Jinja templates, which is an extension to HTML where you can
+#   # pass data to a template and dynamically generate HTML based on the data
+#   # (you can think of it as simple PHP)
+#   # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
+#   #
+#   # You can see an example template in templates/index.html
+#   #
+#   # context are the variables that are passed to the template.
+#   # for example, "data" key in the context variable defined below will be 
+#   # accessible as a variable in index.html:
+#   #
+#   #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
+#   #     <div>{{data}}</div>
+#   #     
+#   #     # creates a <div> tag for each element in data
+#   #     # will print: 
+#   #     #
+#   #     #   <div>grace hopper</div>
+#   #     #   <div>alan turing</div>
+#   #     #   <div>ada lovelace</div>
+#   #     #
+#   #     {% for n in data %}
+#   #     <div>{{n}}</div>
+#   #     {% endfor %}
+#   #
+#   context = dict(data = names)
 
 
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  print(name)
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/')
+#   #
+#   # render_template looks in the templates/ folder for files.
+#   # for example, the below file reads template/index.html
+#   #
+#   return render_template("index.html", **context)
+
+# #
+# # This is an example of a different path.  You can see it at
+# # 
+# #     localhost:8111/another
+# #
+# # notice that the functio name is another() rather than index()
+# # the functions for each app.route needs to have different names
+# #
+# @app.route('/another')
+# def another():
+#   return render_template("anotherfile.html")
 
 
-@app.route('/login')
-def login():
-    abort(401)
-    this_is_never_executed()
+# # Example of adding new data to the database
+# @app.route('/add', methods=['POST'])
+# def add():
+#   name = request.form['name']
+#   print(name)
+#   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
+#   g.conn.execute(text(cmd), name1 = name, name2 = name);
+#   return redirect('/')
+
+
+# @app.route('/login')
+# def login():
+#     abort(401)
+#     this_is_never_executed()
 
 
 if __name__ == "__main__":
