@@ -36,8 +36,8 @@ app = Flask(__name__, template_folder=tmpl_dir)
 # For your convenience, we already set it to the class database
 
 # Use the DB credentials you received by e-mail
-DB_USER = "jm5530"
-DB_PASSWORD = "jm5530"
+DB_USER = "YOUR_DB_USERNAME_HERE"
+DB_PASSWORD = "YOUR_DB_PASSWORD_HERE"
 
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
@@ -47,55 +47,45 @@ DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/proj1part2
 #
 # This line creates a database engine that knows how to connect to the URI above
 #
-# engine = create_engine(DATABASEURI)
+engine = create_engine(DATABASEURI)
 
 
-# # Here we create a test table and insert some values in it
-
-# with engine.connect() as conn:
-#     # Drop the table if it exists
-#     conn.execute(text("""DROP TABLE IF EXISTS test;"""))
-    
-#     # Create the table if it does not exist
-#     conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
-#       id serial PRIMARY KEY,
-#       name text
-#     );"""))
-    
-#     # Insert records into the table
-#     conn.execute(text("""INSERT INTO test(name) VALUES 
-#       ('grace hopper'), 
-#       ('alan turing'), 
-#       ('ada lovelace');"""))
+# Here we create a test table and insert some values in it
+engine.execute("""DROP TABLE IF EXISTS test;""")
+engine.execute("""CREATE TABLE IF NOT EXISTS test (
+  id serial,
+  name text
+);""")
+engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
 
 
 
-# @app.before_request
-# def before_request():
-#   """
-#   This function is run at the beginning of every web request 
-#   (every time you enter an address in the web browser).
-#   We use it to setup a database connection that can be used throughout the request
+@app.before_request
+def before_request():
+  """
+  This function is run at the beginning of every web request 
+  (every time you enter an address in the web browser).
+  We use it to setup a database connection that can be used throughout the request
 
-#   The variable g is globally accessible
-#   """
-#   try:
-#     g.conn = engine.connect()
-#   except:
-#     print("uh oh, problem connecting to database")
-#     import traceback; traceback.print_exc()
-#     g.conn = None
+  The variable g is globally accessible
+  """
+  try:
+    g.conn = engine.connect()
+  except:
+    print("uh oh, problem connecting to database")
+    import traceback; traceback.print_exc()
+    g.conn = None
 
-# @app.teardown_request
-# def teardown_request(exception):
-#   """
-#   At the end of the web request, this makes sure to close the database connection.
-#   If you don't the database could run out of memory!
-#   """
-#   try:
-#     g.conn.close()
-#   except Exception as e:
-#     pass
+@app.teardown_request
+def teardown_request(exception):
+  """
+  At the end of the web request, this makes sure to close the database connection.
+  If you don't the database could run out of memory!
+  """
+  try:
+    g.conn.close()
+  except Exception as e:
+    pass
 
 
 #
@@ -127,14 +117,14 @@ def index():
   print(request.args)
 
 
-#   #
-#   # example of a database query
-#   #
-#   cursor = g.conn.execute("SELECT name FROM test")
-#   names = []
-#   for result in cursor:
-#     names.append(result['name'])  # can also be accessed using result[0]
-#   cursor.close()
+  #
+  # example of a database query
+  #
+  cursor = g.conn.execute("SELECT name FROM test")
+  names = []
+  for result in cursor:
+    names.append(result['name'])  # can also be accessed using result[0]
+  cursor.close()
 
   #
   # Flask uses Jinja templates, which is an extension to HTML where you can
@@ -194,10 +184,10 @@ def add():
   return redirect('/')
 
 
-# @app.route('/login')
-# def login():
-#     abort(401)
-#     this_is_never_executed()
+@app.route('/login')
+def login():
+    abort(401)
+    this_is_never_executed()
 
 
 if __name__ == "__main__":
