@@ -53,7 +53,7 @@ engine = engine.connect()
 
 # Here we create a test table and insert some values in it
 engine.execute(text("""DROP TABLE IF EXISTS test;"""))
-engine.execute(text("""CREATE TABLE IF NOT EXISTS private.test (
+engine.execute(text("""CREATE TABLE IF NOT EXISTS test (
   id serial,
   name text
 );"""))
