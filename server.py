@@ -48,16 +48,23 @@ DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/proj1part2
 # This line creates a database engine that knows how to connect to the URI above
 #
 engine = create_engine(DATABASEURI)
-engine = engine.connect()
 
+#engine = engine.connect()
+with engine.connect() as conn:
+    conn.execute(text("""DROP TABLE IF EXISTS test;"""))
+    conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
+        id serial,
+        name text
+    );"""))
+    conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
 
 # Here we create a test table and insert some values in it
-engine.execute(text("""DROP TABLE IF EXISTS test;"""))
-engine.execute(text("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);"""))
-engine.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
+# engine.execute(text("""DROP TABLE IF EXISTS test;"""))
+# engine.execute(text("""CREATE TABLE IF NOT EXISTS test (
+#   id serial,
+#   name text
+# );"""))
+# engine.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
 
 
 
