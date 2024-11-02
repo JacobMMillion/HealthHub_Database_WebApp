@@ -138,7 +138,7 @@ def index():
   cursor = g.conn.execute(text("SELECT name FROM test"))
   names = []
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+    names.append(result[0])  # can also be accessed using result[0]
   cursor.close()
 
   #
