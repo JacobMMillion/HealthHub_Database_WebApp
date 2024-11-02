@@ -57,6 +57,7 @@ try:
             name text
         );"""))
         conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
+        conn.commit()
     print("Created test table")
 except Exception as e:
     print("Error creating test table:", e)
