@@ -58,6 +58,8 @@ with engine.connect() as conn:
     );"""))
     conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
 
+print("Created test table")
+
 # Here we create a test table and insert some values in it
 # engine.execute(text("""DROP TABLE IF EXISTS test;"""))
 # engine.execute(text("""CREATE TABLE IF NOT EXISTS test (
