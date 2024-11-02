@@ -41,7 +41,7 @@ DB_PASSWORD = "jm5530"
 
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
-DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/proj1part2"
+DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111"
 
 
 #
@@ -49,26 +49,18 @@ DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/proj1part2
 #
 engine = create_engine(DATABASEURI)
 
-
-# Here we create a test table and insert some values in it
-
-with engine.connect() as conn:
-    # Drop the table if it exists
-    conn.execute(text("""DROP TABLE IF EXISTS test;"""))
-    
-    # Create the table if it does not exist
-    conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
-      id serial PRIMARY KEY,
-      name text
-    );"""))
-    
-    # Insert records into the table
-    conn.execute(text("""INSERT INTO test(name) VALUES 
-      ('grace hopper'), 
-      ('alan turing'), 
-      ('ada lovelace');"""))
-
-
+try:
+    with engine.connect() as conn:
+        conn.execute(text("""DROP TABLE IF EXISTS test;"""))
+        conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
+            id serial,
+            name text
+        );"""))
+        conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
+        conn.commit()
+    print("Created test table")
+except Exception as e:
+    print("Error creating test table:", e)
 
 @app.before_request
 def before_request():
@@ -79,6 +71,9 @@ def before_request():
 
   The variable g is globally accessible
   """
+    
+  print("before_request entered, setting up connection to database")
+    
   try:
     g.conn = engine.connect()
   except:
@@ -92,6 +87,9 @@ def teardown_request(exception):
   At the end of the web request, this makes sure to close the database connection.
   If you don't the database could run out of memory!
   """
+
+  print("teardown_request entered, ending connection to database")
+    
   try:
     g.conn.close()
   except Exception as e:
@@ -123,6 +121,8 @@ def index():
   See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
   """
 
+  print("/ path accessed. Will display names in the database")
+
   # DEBUG: this is debugging code to see what request looks like
   print(request.args)
 
@@ -130,10 +130,10 @@ def index():
   #
   # example of a database query
   #
-  cursor = g.conn.execute("SELECT name FROM test")
+  cursor = g.conn.execute(text("SELECT name FROM test"))
   names = []
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+    names.append(result[0])  # can also be accessed using result[0]
   cursor.close()
 
   #
