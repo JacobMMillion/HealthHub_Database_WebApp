@@ -50,15 +50,15 @@ DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111"
 engine = create_engine(DATABASEURI)
 
 #engine = engine.connect()
-with engine.connect() as conn:
-    conn.execute(text("""DROP TABLE IF EXISTS test;"""))
-    conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
-        id serial,
-        name text
-    );"""))
-    conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
+# with engine.connect() as conn:
+#     conn.execute(text("""DROP TABLE IF EXISTS test;"""))
+#     conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
+#         id serial,
+#         name text
+#     );"""))
+#     conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
 
-print("Created test table")
+# print("Created test table")
 
 # Here we create a test table and insert some values in it
 # engine.execute(text("""DROP TABLE IF EXISTS test;"""))
@@ -80,6 +80,19 @@ def before_request():
   The variable g is globally accessible
   """
   print("Before request entered")
+
+  # Try creating test table here
+  with engine.connect() as conn:
+    conn.execute(text("""DROP TABLE IF EXISTS test;"""))
+    conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
+        id serial,
+        name text
+    );"""))
+    conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
+
+  print("Created test table")
+
+    
   try:
     g.conn = engine.connect()
   except:
