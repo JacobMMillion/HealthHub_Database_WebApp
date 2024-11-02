@@ -191,7 +191,7 @@ def add():
   print(name)
   cmd = 'INSERT INTO test(name) VALUES (:name1);
   g.conn.execute(text(cmd), {"name1": name});
-  g.conn.commit()
+  g.conn.commit();
   return redirect('/')
 
 
