@@ -79,6 +79,7 @@ def before_request():
 
   The variable g is globally accessible
   """
+  print("Before request entered")
   try:
     g.conn = engine.connect()
   except:
