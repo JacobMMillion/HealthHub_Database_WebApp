@@ -62,17 +62,6 @@ try:
 except Exception as e:
     print("Error creating test table:", e)
 
-print("Done with initial test table creation logic")
-
-# Here we create a test table and insert some values in it
-# engine.execute(text("""DROP TABLE IF EXISTS test;"""))
-# engine.execute(text("""CREATE TABLE IF NOT EXISTS test (
-#   id serial,
-#   name text
-# );"""))
-# engine.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
-
-
 @app.before_request
 def before_request():
   """
@@ -82,7 +71,8 @@ def before_request():
 
   The variable g is globally accessible
   """
-  print("Before request entered")
+    
+  print("before_request entered, setting up connection to database")
     
   try:
     g.conn = engine.connect()
@@ -97,6 +87,9 @@ def teardown_request(exception):
   At the end of the web request, this makes sure to close the database connection.
   If you don't the database could run out of memory!
   """
+
+  print("teardown_request entered, ending connection to database")
+    
   try:
     g.conn.close()
   except Exception as e:
@@ -127,6 +120,8 @@ def index():
 
   See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
   """
+
+  print("/ path accessed. Will display names in the database")
 
   # DEBUG: this is debugging code to see what request looks like
   print(request.args)
