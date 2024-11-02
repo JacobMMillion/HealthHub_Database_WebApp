@@ -49,16 +49,19 @@ DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111"
 #
 engine = create_engine(DATABASEURI)
 
-engine = engine.connect()
-with engine.connect() as conn:
-    conn.execute(text("""DROP TABLE IF EXISTS test;"""))
-    conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
-        id serial,
-        name text
-    );"""))
-    conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
+try:
+    with engine.connect() as conn:
+        conn.execute(text("""DROP TABLE IF EXISTS test;"""))
+        conn.execute(text("""CREATE TABLE IF NOT EXISTS test (
+            id serial,
+            name text
+        );"""))
+        conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
+    print("Created test table")
+except Exception as e:
+    print("Error creating test table:", e)
 
-print("Created test table")
+print("Done with initial test table creation logic")
 
 # Here we create a test table and insert some values in it
 # engine.execute(text("""DROP TABLE IF EXISTS test;"""))
