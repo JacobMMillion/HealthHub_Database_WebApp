@@ -1,0 +1,62 @@
+<!-- templates/feed.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feed</title>
+</head>
+<body>
+    <h1>User Feed</h1>
+
+    <!-- Form to Add a New Post -->
+    <h2>Create a New Post</h2>
+    <form method="POST">
+        <label for="user_name">Your User Name:</label>
+        <input type="text" id="user_name" name="user_name" required><br>
+
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required><br>
+
+        <label for="content">Content:</label>
+        <textarea id="content" name="content" required></textarea><br>
+
+        <button type="submit">Post</button>
+    </form>
+
+    <!-- Display All Posts with Comments -->
+    <h2>Posts</h2>
+    {% for post in posts %}
+        <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;">
+            <h3>{{ post[1] }}</h3> <!-- Title -->
+            <p>{{ post[2] }}</p> <!-- Content -->
+            <p><strong>Posted by:</strong> {{ post[5] }} on {{ post[4] }}</p>
+
+            <!-- Display Comments for Each Post -->
+            <h4>Comments:</h4>
+            {% if post[0] in comments_by_post %}
+                <ul>
+                    {% for comment in comments_by_post[post[0]] %}
+                        <li><strong>{{ comment[3] }}:</strong> {{ comment[1] }} ({{ comment[2] }})</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No comments yet.</p>
+            {% endif %}
+
+            <!-- Form to Add a Reply to the Post -->
+            <form method="POST" style="margin-top: 10px;">
+                <input type="hidden" name="post_id" value="{{ post[0] }}">
+                <label for="reply_user_name">Your User Name:</label>
+                <input type="text" id="reply_user_name" name="reply_user_name" required><br>
+
+                <label for="reply_content">Reply:</label>
+                <textarea id="reply_content" name="reply_content" required></textarea><br>
+
+                <button type="submit">Reply</button>
+            </form>
+        </div>
+    {% endfor %}
+
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>
