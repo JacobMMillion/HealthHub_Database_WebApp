@@ -5,13 +5,15 @@
     <title>User Favorites and Followings</title>
 </head>
 <body>
-    <h1>Healthcare Facilities by State</h1>
+    
+    <h1>User Favorites and Followings</h1>
+    
     <form method="POST">
-        <label for="state">Select State:</label>
-        <select name="state" id="state">
+        <label for="user">Select User:</label>
+        <select name="user" id="user">
             <option value="">All States</option>
             {% for state in states %}
-                <option value="{{ state }}" {% if selected_state == state %}selected{% endif %}>{{ state }}</option>
+                <option value="{{ user }}" {% if selected_user == user %}selected{% endif %}>{{ user }}</option>
             {% endfor %}
         </select>
         <button type="submit">Filter</button>
