@@ -11,8 +11,8 @@
     <form method="POST">
         <label for="user">Select User:</label>
         <select name="user" id="user">
-            <option value="">All States</option>
-            {% for state in states %}
+            <option value="">All Users</option>
+            {% for user in users %}
                 <option value="{{ user }}" {% if selected_user == user %}selected{% endif %}>{{ user }}</option>
             {% endfor %}
         </select>
