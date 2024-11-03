@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Following Diseases</title>
+</head>
+<body>
+    
+    <h1>User Following Diseases</h1>
+    
+    <form method="POST">
+        <label for="user">Select User:</label>
+        <select name="user" id="user">
+            <option value="">All Users</option>
+            {% for user in users %}
+                <option value="{{ user }}" {% if selected_user == user %}selected{% endif %}>{{ user }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    <table border="1">
+        <tr>
+            <th>User</th>
+            <th>Favorited State</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>
