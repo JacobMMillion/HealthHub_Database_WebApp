@@ -36,8 +36,8 @@ app = Flask(__name__, template_folder=tmpl_dir)
 # For your convenience, we already set it to the class database
 
 # Use the DB credentials you received by e-mail
-DB_USER = "jm5530"
-DB_PASSWORD = "jm5530"
+DB_USER = "mc5672"
+DB_PASSWORD = "mc5672p"
 
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
@@ -109,90 +109,117 @@ def teardown_request(exception):
 # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
+
+# Home route with links to the three views
 @app.route('/')
 def index():
-  """
-  request is a special object that Flask provides to access web request information:
+    return render_template('index.html')
 
-  request.method:   "GET" or "POST"
-  request.form:     if the browser submitted a form, this contains the data in the form
-  request.args:     dictionary of URL arguments e.g., {a:1, b:2} for http://localhost?a=1&b=2
+# 1. Disease counts by state
+@app.route('/disease_counts_by_state', methods=['GET', 'POST'])
+def disease_counts_by_state():
+  if request.method == 'POST':
+    selected_state = request.form['state']
+    query = """
+          SELECT s.State_Name, d.Name AS Disease, dh.Count
+          FROM Disease_Has dh
+          JOIN States s ON dh.State_Name = s.State_Name
+          JOIN Diseases d ON dh.Disease_ID = d.Disease_ID
+          WHERE s.State_Name = :state
+          ORDER BY d.Name;
+      """
+    cursor = g.conn.execute(text(query), {"state": selected_state})
+  else:
+    selected_state = None
+    query = """
+          SELECT s.State_Name, d.Name AS Disease, dh.Count
+          FROM Disease_Has dh
+          JOIN States s ON dh.State_Name = s.State_Name
+          JOIN Diseases d ON dh.Disease_ID = d.Disease_ID
+          ORDER BY s.State_Name;
+      """
+    cursor = g.conn.execute(text(query))
 
-  See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
-  """
-
-  print("/ path accessed. Will display names in the database")
-
-  # DEBUG: this is debugging code to see what request looks like
-  print(request.args)
-
-
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute(text("SELECT name FROM test"))
-  names = []
-  for result in cursor:
-    names.append(result[0])  # can also be accessed using result[0]
+  data = cursor.fetchall()
   cursor.close()
 
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
-  context = dict(data = names)
+  # Fetch all states for the dropdown menu
+  states_cursor = g.conn.execute(text("SELECT State_Name FROM States ORDER BY State_Name;"))
+  states = [row[0] for row in states_cursor]
+  states_cursor.close()
+
+  return render_template('disease_counts_by_state.html', data=data, states=states, selected_state=selected_state)
 
 
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
+# 2. State counts by disease
+@app.route('/state_counts_by_disease', methods=['GET', 'POST'])
+def state_counts_by_disease():
+  if request.method == 'POST':
+    selected_disease = request.form['disease']
+    query = """
+            SELECT s.State_Name, dh.Count
+            FROM Disease_Has dh
+            JOIN Diseases d ON dh.Disease_ID = d.Disease_ID
+            JOIN States s ON dh.State_Name = s.State_Name
+            WHERE d.Name = :disease
+            ORDER BY s.State_Name;
+        """
+    cursor = g.conn.execute(text(query), {"disease": selected_disease})
+  else:
+    selected_disease = None
+    query = """
+            SELECT d.Name AS Disease, COUNT(dh.State_Name) AS State_Count
+            FROM Disease_Has dh
+            JOIN Diseases d ON dh.Disease_ID = d.Disease_ID
+            GROUP BY d.Name
+            ORDER BY State_Count DESC;
+        """
+    cursor = g.conn.execute(text(query))
 
-#
-# This is an example of a different path.  You can see it at
-# 
-#     localhost:8111/another
-#
-# notice that the functio name is another() rather than index()
-# the functions for each app.route needs to have different names
-#
-@app.route('/another')
-def another():
-  return render_template("anotherfile.html")
+  data = cursor.fetchall()
+  cursor.close()
+
+  # Fetch all diseases for the dropdown menu
+  diseases_cursor = g.conn.execute(text("SELECT Name FROM Diseases ORDER BY Name;"))
+  diseases = [row[0] for row in diseases_cursor]
+  diseases_cursor.close()
+
+  return render_template('state_counts_by_disease.html', data=data, diseases=diseases,
+                         selected_disease=selected_disease)
 
 
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  print(name)
-  cmd = 'INSERT INTO test(name) VALUES (:name1);'
-  g.conn.execute(text(cmd), {"name1": name});
-  g.conn.commit();
-  return redirect('/')
+# 3. Healthcare facilities by state with dropdown to filter by state
+@app.route('/healthcare_facilities_by_state', methods=['GET', 'POST'])
+def healthcare_facilities_by_state():
+  if request.method == 'POST':
+    selected_state = request.form['state']
+    query = """
+            SELECT s.State_Name, hf.Name AS Facility, hf.Address
+            FROM HealthcareFacilities hf
+            JOIN States s ON hf.State_Name = s.State_Name
+            WHERE s.State_Name = :state
+            ORDER BY hf.Name;
+        """
+    cursor = g.conn.execute(text(query), {"state": selected_state})
+  else:
+    selected_state = None
+    query = """
+            SELECT s.State_Name, hf.Name AS Facility, hf.Address
+            FROM HealthcareFacilities hf
+            JOIN States s ON hf.State_Name = s.State_Name
+            ORDER BY s.State_Name;
+        """
+    cursor = g.conn.execute(text(query))
+
+  data = cursor.fetchall()
+  cursor.close()
+
+  # Fetch all states for the dropdown menu
+  states_cursor = g.conn.execute(text("SELECT State_Name FROM States ORDER BY State_Name;"))
+  states = [row[0] for row in states_cursor]
+  states_cursor.close()
+
+  return render_template('healthcare_facilities_by_state.html', data=data, states=states, selected_state=selected_state)
 
 
 @app.route('/login')

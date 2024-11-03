@@ -1,0 +1,36 @@
+<!-- templates/healthcare_facilities_by_state.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Healthcare Facilities by State</title>
+</head>
+<body>
+    <h1>Healthcare Facilities by State</h1>
+    <form method="POST">
+        <label for="state">Select State:</label>
+        <select name="state" id="state">
+            <option value="">All States</option>
+            {% for state in states %}
+                <option value="{{ state }}" {% if selected_state == state %}selected{% endif %}>{{ state }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    <table border="1">
+        <tr>
+            <th>State</th>
+            <th>Facility</th>
+            <th>Address</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>
