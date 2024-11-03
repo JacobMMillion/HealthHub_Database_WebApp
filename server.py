@@ -18,7 +18,7 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, request, render_template, g, redirect, Response, url_for
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -220,6 +220,72 @@ def healthcare_facilities_by_state():
   states_cursor.close()
 
   return render_template('healthcare_facilities_by_state.html', data=data, states=states, selected_state=selected_state)
+
+# Feed route to view posts, add replies, and create new posts
+@app.route('/feed', methods=['GET', 'POST'])
+def feed():
+  if request.method == 'POST':
+    # Check if the request is for a new post or a reply
+    if 'title' in request.form:  # Adding a new post
+      title = request.form['title']
+      content = request.form['content']
+      user_name = request.form['user_name']  # Assumes user is entering their name
+
+      query = """
+                INSERT INTO Posts (Title, Content, Num_Likes, Date, User_Name)
+                VALUES (:title, :content, 0, DATE_TRUNC('minute', CURRENT_TIMESTAMP), :user_name);
+            """
+
+      try:
+        g.conn.execute(text(query), {"title": title, "content": content, "user_name": user_name})
+        g.conn.commit()
+      except Exception as e:
+        print("Error inserting post:", e)
+
+
+    elif 'post_id' in request.form:  # Adding a reply to a post
+      post_id = request.form['post_id']
+      reply_content = request.form['reply_content']
+      reply_user_name = request.form['reply_user_name']  # Assumes user enters their name
+
+      query = """
+                INSERT INTO Comments (Content, Date, User_Name, Post_ID)
+                VALUES (:reply_content, DATE_TRUNC('minute', CURRENT_TIMESTAMP), :reply_user_name, :post_id);
+            """
+      g.conn.execute(text(query),
+                     {"reply_content": reply_content, "reply_user_name": reply_user_name, "post_id": post_id})
+      g.conn.commit()
+
+    # Redirect to the feed page to refresh content
+    return redirect(url_for('feed'))
+
+  # Fetch all posts with their user details
+  post_query = """
+        SELECT p.Post_ID, p.Title, p.Content, p.Num_Likes, p.Date, u.Name
+        FROM Posts p
+        JOIN Users u ON p.User_Name = u.User_Name
+        ORDER BY p.Date DESC;
+    """
+  posts = g.conn.execute(text(post_query)).fetchall()
+
+  # Fetch all replies associated with posts
+  comment_query = """
+        SELECT c.Post_ID, c.Content, c.Date, u.Name
+        FROM Comments c
+        JOIN Users u ON c.User_Name = u.User_Name
+        ORDER BY c.Date ASC;
+    """
+  comments = g.conn.execute(text(comment_query)).fetchall()
+
+  # Organize comments by post for easy access in the template
+  comments_by_post = {}
+  for comment in comments:
+    post_id = comment[0]
+    if post_id not in comments_by_post:
+      comments_by_post[post_id] = []
+    comments_by_post[post_id].append(comment)
+
+  return render_template('feed.html', posts=posts, comments_by_post=comments_by_post)
 
 
 @app.route('/login')
