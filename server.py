@@ -287,6 +287,54 @@ def feed():
 
   return render_template('feed.html', posts=posts, comments_by_post=comments_by_post)
 
+@app.route('/disease_info', methods=['GET', 'POST'])
+def disease_info():
+    # Determine the selected disease ID from either the form submission or URL parameter
+    disease_id = request.args.get('disease_id')
+    if request.method == 'POST':
+        disease_id = request.form.get('disease_id')
+
+    # Fetch the disease details if a disease is selected
+    disease_details = prevention_strategies = symptoms = transmission_methods = None
+    if disease_id:
+        # Query to get basic disease information
+        disease_query = """
+            SELECT Disease_ID, Name, Category
+            FROM Diseases
+            WHERE Disease_ID = :disease_id;
+        """
+        disease_details = g.conn.execute(text(disease_query), {"disease_id": disease_id}).fetchone()
+
+        # Query for prevention strategies
+        prevention_query = """
+            SELECT Name, Description, Type
+            FROM PreventionStratsPreventedBy
+            WHERE Disease_ID = :disease_id;
+        """
+        prevention_strategies = g.conn.execute(text(prevention_query), {"disease_id": disease_id}).fetchall()
+
+        # Query for symptoms
+        symptoms_query = """
+            SELECT Name, System, Description
+            FROM SymptomsCauses
+            WHERE Disease_ID = :disease_id;
+        """
+        symptoms = g.conn.execute(text(symptoms_query), {"disease_id": disease_id}).fetchall()
+
+        # Query for transmission methods
+        transmission_query = """
+            SELECT Name, Mode
+            FROM TransmissionMethodsTransmittedBy
+            WHERE Disease_ID = :disease_id;
+        """
+        transmission_methods = g.conn.execute(text(transmission_query), {"disease_id": disease_id}).fetchall()
+
+    # Query for all diseases to populate the dropdown
+    diseases_query = "SELECT Disease_ID, Name FROM Diseases ORDER BY Name;"
+    diseases = g.conn.execute(text(diseases_query)).fetchall()
+    return render_template('disease_info.html', diseases=diseases, disease_details=disease_details,
+                           prevention_strategies=prevention_strategies, symptoms=symptoms,
+                           transmission_methods=transmission_methods, selected_disease_id=disease_id)
 
 @app.route('/login')
 def login():

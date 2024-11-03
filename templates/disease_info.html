@@ -1,0 +1,65 @@
+<!-- templates/disease_info.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Disease Information</title>
+</head>
+<body>
+    <h1>Disease Information</h1>
+
+    <!-- Disease Selection Dropdown -->
+    <form method="POST" action="{{ url_for('disease_info') }}">
+        <label for="disease_id">Select Disease:</label>
+        <select name="disease_id" id="disease_id">
+            <option value="">Select a Disease</option>
+            {% for disease_id, name in diseases %}
+                <option value="{{ disease_id }}" {% if selected_disease_id == disease_id %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">View Disease Info</button>
+    </form>
+
+    {% if disease_details %}
+        <h2>{{ disease_details['Name'] }}</h2>
+        <p><strong>Category:</strong> {{ disease_details['Category'] }}</p>
+
+        <h3>Prevention Strategies</h3>
+        {% if prevention_strategies %}
+            <ul>
+                {% for name, description, type in prevention_strategies %}
+                    <li><strong>{{ name }}</strong> ({{ type }}): {{ description }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No prevention strategies available for this disease.</p>
+        {% endif %}
+
+        <h3>Symptoms</h3>
+        {% if symptoms %}
+            <ul>
+                {% for name, system, description in symptoms %}
+                    <li><strong>{{ name }}</strong> ({{ system }}): {{ description }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No symptoms available for this disease.</p>
+        {% endif %}
+
+        <h3>Transmission Methods</h3>
+        {% if transmission_methods %}
+            <ul>
+                {% for name, mode in transmission_methods %}
+                    <li><strong>{{ name }}</strong> ({{ mode }})</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No transmission methods available for this disease.</p>
+        {% endif %}
+    {% else %}
+        <p>Select a disease to view details.</p>
+    {% endif %}
+
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>
