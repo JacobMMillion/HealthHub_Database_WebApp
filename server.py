@@ -23,30 +23,11 @@ from flask import Flask, request, render_template, g, redirect, Response, url_fo
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
-
-
-# XXX: The Database URI should be in the format of: 
-#
-#     postgresql://USER:PASSWORD@<IP_OF_POSTGRE_SQL_SERVER>/<DB_NAME>
-#
-# For example, if you had username ewu2493, password foobar, then the following line would be:
-#
-#     DATABASEURI = "postgresql://ewu2493:foobar@<IP_OF_POSTGRE_SQL_SERVER>/postgres"
-#
-# For your convenience, we already set it to the class database
-
-# Use the DB credentials you received by e-mail
 DB_USER = "mc5672"
 DB_PASSWORD = "mc5672p"
-
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
-
 DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111"
 
-
-#
-# This line creates a database engine that knows how to connect to the URI above
-#
 engine = create_engine(DATABASEURI)
 
 try:
@@ -96,21 +77,6 @@ def teardown_request(exception):
     pass
 
 
-#
-# @app.route is a decorator around index() that means:
-#   run index() whenever the user tries to access the "/" path using a GET request
-#
-# If you wanted the user to go to e.g., localhost:8111/foobar/ with POST or GET then you could use
-#
-#       @app.route("/foobar/", methods=["POST", "GET"])
-#
-# PROTIP: (the trailing / in the path is important)
-# 
-# see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
-# see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
-#
-
-# Home route with links to the three views
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -188,7 +154,7 @@ def state_counts_by_disease():
                          selected_disease=selected_disease)
 
 
-# 3. Healthcare facilities by state with dropdown to filter by state
+# 3. Healthcare facilities by state
 @app.route('/healthcare_facilities_by_state', methods=['GET', 'POST'])
 def healthcare_facilities_by_state():
   if request.method == 'POST':
@@ -221,7 +187,7 @@ def healthcare_facilities_by_state():
 
   return render_template('healthcare_facilities_by_state.html', data=data, states=states, selected_state=selected_state)
 
-# Feed route to view posts, add replies, and create new posts
+# 4. Feed (Posts & Replies)
 @app.route('/feed', methods=['GET', 'POST'])
 def feed():
   if request.method == 'POST':
@@ -229,25 +195,21 @@ def feed():
     if 'title' in request.form:  # Adding a new post
       title = request.form['title']
       content = request.form['content']
-      user_name = request.form['user_name']  # Assumes user is entering their name
-
+      user_name = request.form['user_name']
       query = """
                 INSERT INTO Posts (Title, Content, Num_Likes, Date, User_Name)
                 VALUES (:title, :content, 0, DATE_TRUNC('minute', CURRENT_TIMESTAMP), :user_name);
             """
-
       try:
         g.conn.execute(text(query), {"title": title, "content": content, "user_name": user_name})
         g.conn.commit()
       except Exception as e:
         print("Error inserting post:", e)
 
-
     elif 'post_id' in request.form:  # Adding a reply to a post
       post_id = request.form['post_id']
       reply_content = request.form['reply_content']
-      reply_user_name = request.form['reply_user_name']  # Assumes user enters their name
-
+      reply_user_name = request.form['reply_user_name']
       query = """
                 INSERT INTO Comments (Content, Date, User_Name, Post_ID)
                 VALUES (:reply_content, DATE_TRUNC('minute', CURRENT_TIMESTAMP), :reply_user_name, :post_id);
@@ -289,15 +251,15 @@ def feed():
 
 @app.route('/disease_info', methods=['GET', 'POST'])
 def disease_info():
-    # Determine the selected disease ID from either the form submission or URL parameter
+
     disease_id = request.args.get('disease_id')
     if request.method == 'POST':
         disease_id = request.form.get('disease_id')
 
-    # Fetch the disease details if a disease is selected
+    # Fetch the disease details
     disease_details = prevention_strategies = symptoms = transmission_methods = None
     if disease_id:
-        # Query to get basic disease information
+        # Query for basic disease information
         disease_query = """
             SELECT Disease_ID, Name, Category
             FROM Diseases
@@ -351,18 +313,6 @@ if __name__ == "__main__":
   @click.argument('HOST', default='0.0.0.0')
   @click.argument('PORT', default=8111, type=int)
   def run(debug, threaded, host, port):
-    """
-    This function handles command line parameters.
-    Run the server using
-
-        python server.py
-
-    Show the help text using
-
-        python server.py --help
-
-    """
-
     HOST, PORT = host, port
     print("running on %s:%d" % (HOST, PORT))
     app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
