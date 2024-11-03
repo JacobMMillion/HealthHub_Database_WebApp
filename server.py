@@ -298,6 +298,82 @@ def disease_info():
                            prevention_strategies=prevention_strategies, symptoms=symptoms,
                            transmission_methods=transmission_methods, selected_disease_id=disease_id)
 
+# 5. User favorites
+@app.route('/favorites', methods=['GET', 'POST'])
+def favorites():
+  if request.method == 'POST':
+    selected_user = request.form['user']
+    query = """
+            SELECT User_Name, State_Name
+            FROM Favorites 
+            WHERE User_Name = :user
+            ORDER BY State_Name;
+        """
+    cursor = g.conn.execute(text(query), {"user": selected_user})
+  else:
+    selected_user = None
+    query = """
+            SELECT User_Name, State_Name
+            FROM Favorites
+            ORDER BY User_Name
+        """
+    cursor = g.conn.execute(text(query))
+
+  data = cursor.fetchall()
+  cursor.close()
+
+  # Fetch all users for the dropdown menu
+  users_cursor = g.conn.execute(text("SELECT User_Name FROM Users ORDER BY User_Name;"))
+  users = [row[0] for row in users_cursor]
+  users_cursor.close()
+
+  return render_template('favorites.html', data=data, users=users, selected_user=selected_user)
+
+# 5. User following
+@app.route('/follows', methods=['GET', 'POST'])
+def follows():
+  if request.method == 'POST':
+    selected_user = request.form['user']
+    query = """
+            SELECT User_Name, d.Name
+            FROM Follows as f
+            JOIN Diseases d
+            ON d.Disease_ID = f.Disease_ID
+            WHERE f.User_Name = :user
+            ORDER BY d.Name;
+        """
+    cursor = g.conn.execute(text(query), {"user": selected_user})
+  else:
+    selected_user = None
+    query = """
+            SELECT User_Name, d.Name
+            FROM Follows as f
+            JOIN Diseases d
+            ON d.Disease_ID = f.Disease_ID
+            ORDER BY d.Name;
+        """
+    cursor = g.conn.execute(text(query))
+
+  data = cursor.fetchall()
+  cursor.close()
+
+  # Fetch all users for the dropdown menu
+  users_cursor = g.conn.execute(text("SELECT User_Name FROM Users ORDER BY User_Name;"))
+  users = [row[0] for row in users_cursor]
+  users_cursor.close()
+
+  return render_template('follows.html', data=data, users=users, selected_user=selected_user)
+
+# 6. User follow/unfollow
+@app.route('/follow_unfollow', methods=['GET', 'POST'])
+def follow_unfollow():
+    return render_template('follow_unfollow.html')
+
+# 7. User favorite/unfavorite
+@app.route('/favorite_unfavorite', methods=['GET', 'POST'])
+def favorite_unfavorite():
+    return render_template('favorite_unfavorite.html')
+
 @app.route('/login')
 def login():
     abort(401)
