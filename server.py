@@ -364,6 +364,15 @@ def follows():
 
   return render_template('follows.html', data=data, users=users, selected_user=selected_user)
 
+# 6. User follow/unfollow
+@app.route('/follow_unfollow', methods=['GET', 'POST'])
+def follow_unfollow():
+    return render_template('follow_unfollow.html')
+
+# 7. User favorite/unfavorite
+@app.route('/favorite_unfavorite', methods=['GET', 'POST'])
+def favorite_unfavorite():
+    return render_template('favorite_unfavorite.html')
 
 @app.route('/login')
 def login():
