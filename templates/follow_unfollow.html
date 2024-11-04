@@ -1,13 +1,34 @@
+<!-- templates/follow_unfollow.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Users Disease Followings</title>
+    <title>Follow/Unfollow Disease</title>
 </head>
 <body>
-    
-    <h1>Edit Users Disease Followings</h1>
-    
+    <h1>Follow or Unfollow a Disease</h1>
+
+    <form method="POST" action="{{ url_for('follow_unfollow') }}">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required>
+
+        <label for="disease_id">Select Disease:</label>
+        <select name="disease_id" id="disease_id" required>
+            <option value="">Select a Disease</option>
+            {% for disease_id, name in diseases %}
+                <option value="{{ disease_id }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="action">Action:</label>
+        <select name="action" id="action" required>
+            <option value="follow">Follow</option>
+            <option value="unfollow">Unfollow</option>
+        </select>
+
+        <button type="submit">Submit</button>
+    </form>
+
     <a href="{{ url_for('index') }}">Back to Home</a>
 </body>
 </html>

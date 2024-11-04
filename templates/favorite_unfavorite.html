@@ -1,13 +1,34 @@
+<!-- templates/favorite_unfavorite.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Users State Favorites</title>
+    <title>Favorite/Unfavorite State</title>
 </head>
 <body>
-    
-    <h1>Edit Users State Favorites</h1>
-    
+    <h1>Favorite or Unfavorite a State</h1>
+
+    <form method="POST" action="{{ url_for('favorite_unfavorite') }}">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required>
+
+        <label for="state_name">Select State:</label>
+        <select name="state_name" id="state_name" required>
+            <option value="">Select a State</option>
+            {% for state_name in states %}
+                <option value="{{ state_name[0] }}">{{ state_name[0] }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="action">Action:</label>
+        <select name="action" id="action" required>
+            <option value="favorite">Favorite</option>
+            <option value="unfavorite">Unfavorite</option>
+        </select>
+
+        <button type="submit">Submit</button>
+    </form>
+
     <a href="{{ url_for('index') }}">Back to Home</a>
 </body>
 </html>

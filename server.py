@@ -350,7 +350,7 @@ def follows():
             FROM Follows as f
             JOIN Diseases d
             ON d.Disease_ID = f.Disease_ID
-            ORDER BY d.Name;
+            ORDER BY f.User_Name;
         """
     cursor = g.conn.execute(text(query))
 
@@ -367,12 +367,69 @@ def follows():
 # 6. User follow/unfollow
 @app.route('/follow_unfollow', methods=['GET', 'POST'])
 def follow_unfollow():
-    return render_template('follow_unfollow.html')
+    if request.method == 'POST':
+        username = request.form.get('username')
+        disease_id = request.form.get('disease_id')
+        action = request.form.get('action')
+
+        if action == 'follow' and disease_id:
+            # Follow the disease
+            follow_query = """
+                INSERT INTO Follows (User_Name, Disease_ID)
+                VALUES (:username, :disease_id)
+                ON CONFLICT DO NOTHING;
+            """  # Note: Need the ON CONFLICT DO NOTHING in case a user tries to follow a disease they already follow
+            g.conn.execute(text(follow_query), {"username": username, "disease_id": disease_id})
+            g.conn.commit()
+        elif action == 'unfollow' and disease_id:
+            # Unfollow the disease
+            unfollow_query = """
+                DELETE FROM Follows
+                WHERE User_Name = :username AND Disease_ID = :disease_id;
+            """
+            g.conn.execute(text(unfollow_query), {"username": username, "disease_id": disease_id})
+            g.conn.commit()
+
+    # Query to get all diseases for the dropdown
+    diseases_query = "SELECT Disease_ID, Name FROM Diseases ORDER BY Name;"
+    diseases = g.conn.execute(text(diseases_query)).fetchall()
+
+    return render_template('follow_unfollow.html', diseases=diseases)
 
 # 7. User favorite/unfavorite
 @app.route('/favorite_unfavorite', methods=['GET', 'POST'])
 def favorite_unfavorite():
-    return render_template('favorite_unfavorite.html')
+    if request.method == 'POST':
+        username = request.form.get('username')
+        state_name = request.form.get('state_name')
+        action = request.form.get('action')
+
+        if isinstance(state_name, tuple):
+            state_name = state_name[0]
+
+        if action == 'favorite' and state_name:
+            # Favorite the state
+            favorite_query = """
+                INSERT INTO Favorites (User_Name, State_Name)
+                VALUES (:username, :state_name)
+                ON CONFLICT DO NOTHING;
+            """
+            g.conn.execute(text(favorite_query), {"username": username, "state_name": state_name})
+            g.conn.commit()
+        elif action == 'unfavorite' and state_name:
+            # Unfavorite the state
+            unfavorite_query = """
+                DELETE FROM Favorites
+                WHERE User_Name = :username AND State_Name = :state_name;
+            """
+            g.conn.execute(text(unfavorite_query), {"username": username, "state_name": state_name})
+            g.conn.commit()
+
+    # Query to get all states for the dropdown
+    states_query = "SELECT State_Name FROM States ORDER BY State_Name;"
+    states = g.conn.execute(text(states_query)).fetchall()
+
+    return render_template('favorite_unfavorite.html', states=states)
 
 @app.route('/login')
 def login():
