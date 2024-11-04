@@ -123,7 +123,7 @@ def state_counts_by_disease():
   if request.method == 'POST':
     selected_disease = request.form['disease']
     query = """
-            SELECT s.State_Name, dh.Count
+            SELECT s.State_Name AS State, dh.Count AS State Count
             FROM Disease_Has dh
             JOIN Diseases d ON dh.Disease_ID = d.Disease_ID
             JOIN States s ON dh.State_Name = s.State_Name
