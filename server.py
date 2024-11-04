@@ -256,6 +256,8 @@ def disease_info():
     if request.method == 'POST':
         disease_id = request.form.get('disease_id')
 
+    disease_id = int(disease_id) if disease_id else None
+
     # Fetch the disease details
     disease_details = prevention_strategies = symptoms = transmission_methods = None
     if disease_id:
@@ -265,7 +267,12 @@ def disease_info():
             FROM Diseases
             WHERE Disease_ID = :disease_id;
         """
-        disease_details = g.conn.execute(text(disease_query), {"disease_id": disease_id}).fetchone()
+        result = g.conn.execute(text(disease_query), {"disease_id": disease_id}).fetchone()
+        disease_details = {
+            "Disease_ID": result[0],
+            "Name": result[1],
+            "Category": result[2]
+        } if result else None
 
         # Query for prevention strategies
         prevention_query = """
