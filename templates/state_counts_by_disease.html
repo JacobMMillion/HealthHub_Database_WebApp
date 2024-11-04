@@ -19,7 +19,11 @@
     </form>
     <table border="1">
         <tr>
-            <th>Disease</th>
+            {% if selected_disease %}
+                <th>State</th>
+            {% else %}
+                <th>Disease</th>
+            {% endif %}
             <th>State Count</th>
         </tr>
         {% for row in data %}
