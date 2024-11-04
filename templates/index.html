@@ -8,7 +8,7 @@
 <body>
     <h1 style="text-align: center;">Welcome to Health Hub</h1>
     <center>
-    <img src="/HealthHub.jpg" alt="HealthHub Logo">
+    <img src="{{ url_for('static', filename='HealthHub.jpg') }}" alt="HealthHub Logo">
     </center>
     <ul style="list-style-type: none; text-align: center;">
         <li><a href="{{ url_for('disease_counts_by_state') }}">View Disease Counts by State</a></li>
