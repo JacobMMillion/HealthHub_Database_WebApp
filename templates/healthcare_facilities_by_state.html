@@ -6,6 +6,7 @@
     <title>Healthcare Facilities by State</title>
 </head>
 <body>
+    <center>
     <h1>Healthcare Facilities by State</h1>
     <form method="POST">
         <label for="state">Select State:</label>
@@ -32,5 +33,6 @@
         {% endfor %}
     </table>
     <a href="{{ url_for('index') }}">Back to Home</a>
+    </center>
 </body>
 </html>
