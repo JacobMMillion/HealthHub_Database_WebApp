@@ -6,6 +6,7 @@
     <title>Disease Information</title>
 </head>
 <body>
+    <center>
     <h1>Disease Information</h1>
     <form method="POST" action="{{ url_for('disease_info') }}">
         <label for="disease_id">Select Disease:</label>
@@ -59,5 +60,6 @@
     {% endif %}
 
     <a href="{{ url_for('index') }}">Back to Home</a>
+    </center>
 </body>
 </html>
