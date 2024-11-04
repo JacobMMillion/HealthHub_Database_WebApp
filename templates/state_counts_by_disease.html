@@ -6,6 +6,7 @@
     <title>State Counts by Disease</title>
 </head>
 <body>
+    <center>
     <h1>State Counts by Disease</h1>
     <form method="POST">
         <label for="disease">Select Disease:</label>
@@ -34,5 +35,6 @@
         {% endfor %}
     </table>
     <a href="{{ url_for('index') }}">Back to Home</a>
+    </center>
 </body>
 </html>
