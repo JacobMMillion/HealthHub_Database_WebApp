@@ -7,7 +7,10 @@
 <body>
     <center>
     <h1>User Favorites States</h1>
-    
+    <p>
+        The table below displays each user's favorited states. Select a user from the drop
+        down menu below to see only the states favorited by that user.
+    </p>
     <form method="POST">
         <label for="user">Select User:</label>
         <select name="user" id="user">
@@ -18,6 +21,7 @@
         </select>
         <button type="submit">Filter</button>
     </form>
+    </br>
     <table border="1">
         <tr>
             <th>User</th>
