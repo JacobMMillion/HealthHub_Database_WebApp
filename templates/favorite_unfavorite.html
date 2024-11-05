@@ -8,7 +8,11 @@
 <body>
     <center>
     <h1>Favorite or Unfavorite a State</h1>
-
+    <p>
+        To favorite or unfavorite a state, fill in your username, select the state from the drop down
+        menu, and select whether you would like to favorite it, or unfavorite it to remove it from your
+        favorites. Press submit and make sure the request processes, and it will then be reflected in the database.
+    </p>
     <form method="POST" action="{{ url_for('favorite_unfavorite') }}">
         <label for="username">Username:</label>
         <input type="text" name="username" id="username" required>
