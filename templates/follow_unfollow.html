@@ -8,7 +8,11 @@
 <body>
     <center>
     <h1>Follow or Unfollow a Disease</h1>
-
+    <p>
+        To follow or unfollow a disease, fill in your username, select the disease from the drop down
+        menu, and select whether you would like to follow it, or unfollow it to remove it from your
+        followings Press submit and make sure the request processes, and it will then be reflected in the database.
+    </p>
     <form method="POST" action="{{ url_for('follow_unfollow') }}">
         <label for="username">Username:</label>
         <input type="text" name="username" id="username" required>
