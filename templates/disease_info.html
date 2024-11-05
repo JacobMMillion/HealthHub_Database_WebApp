@@ -8,6 +8,10 @@
 <body>
     <center>
     <h1>Disease Information</h1>
+    <p>
+        Select a disease from the drop down menu below to see information including: 
+        types of disease, prevention strategies, symptoms, and transmission methods.
+    </p>
     <form method="POST" action="{{ url_for('disease_info') }}">
         <label for="disease_id">Select Disease:</label>
         <select name="disease_id" id="disease_id">
@@ -18,6 +22,7 @@
         </select>
         <button type="submit">View Disease Info</button>
     </form>
+    </br>
 
     {% if disease_details %}
         <h2>{{ disease_details['Name'] }}</h2>
