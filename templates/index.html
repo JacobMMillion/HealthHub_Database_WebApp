@@ -4,6 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
+<style>
+    .box {
+	    width: 400px;
+	    height: 170px;
+	    border: 2px solid red;
+	    padding: 10px;
+	    margin: 10px;
+	    background-color: rgba(138, 0, 0, 0.5);
+    }
+</style>
 </head>
 <body>
     <h1 style="text-align: center;">Welcome to Health Hub</h1>
@@ -11,9 +21,11 @@
     <img src="{{ url_for('static', filename='HealthHub.jpg') }}" alt="HealthHub Logo">
     </br>
 
+    <div class = "box">
+
     <h3 style="text-align: center;">Current Highest-Risk State (State with the Most Disease Cases)</h3>
         
-    <table border="1">
+    <table border="1" style="background-color: white;">
     <tr>
         <th>State</th>
         <th>Count</th>
@@ -25,6 +37,8 @@
     </tr>
     {% endfor %}
     </table>
+
+    </div>
 
     </br>
         
