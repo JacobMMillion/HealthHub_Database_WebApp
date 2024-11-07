@@ -89,7 +89,10 @@ def index():
           ORDER BY SUM(dh.Count) DESC;
           LIMIT 1
     """
-    cursor = g.conn.execute(text(query), {"state": selected_state})
+    cursor = g.conn.execute(text(query))
+
+    data = cursor.fetchall()
+    cursor.close()
 
     
     return render_template('index.html', data=data)
