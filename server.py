@@ -79,7 +79,20 @@ def teardown_request(exception):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+
+    query = """
+          SELECT s.State_Name, SUM(dh.Count) AS Cases
+          FROM Disease_Has dh
+          JOIN States s ON dh.State_Name = s.State_Name
+          JOIN Diseases d ON dh.Disease_ID = d.Disease_ID
+          GROUP BY s.State_Name
+          ORDER BY SUM(dh.Count) DESC;
+          LIMIT 1
+    """
+    cursor = g.conn.execute(text(query), {"state": selected_state})
+
+    
+    return render_template('index.html', data=data)
 
 # 1. Disease counts by state
 @app.route('/disease_counts_by_state', methods=['GET', 'POST'])
