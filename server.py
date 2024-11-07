@@ -86,8 +86,8 @@ def index():
           JOIN States s ON dh.State_Name = s.State_Name
           JOIN Diseases d ON dh.Disease_ID = d.Disease_ID
           GROUP BY s.State_Name
-          ORDER BY SUM(dh.Count) DESC;
-          LIMIT 1
+          ORDER BY SUM(dh.Count) DESC
+          LIMIT 1;
     """
     cursor = g.conn.execute(text(query))
 
