@@ -1,4 +1,4 @@
-# w4111_project1
+# W4111_project1: HealthHub
 
 HealthHub is an application that allows users to track diseases and the states they are present in.
 
