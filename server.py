@@ -206,64 +206,77 @@ def healthcare_facilities_by_state():
 # 4. Feed (Posts & Replies)
 @app.route('/feed', methods=['GET', 'POST'])
 def feed():
-  if request.method == 'POST':
-    # Check if the request is for a new post or a reply
-    if 'title' in request.form:  # Adding a new post
-      title = request.form['title']
-      content = request.form['content']
-      user_name = request.form['user_name']
-      query = """
-                INSERT INTO Posts (Title, Content, Num_Likes, Date, User_Name)
-                VALUES (:title, :content, 0, DATE_TRUNC('minute', CURRENT_TIMESTAMP), :user_name);
-            """
-      try:
-        g.conn.execute(text(query), {"title": title, "content": content, "user_name": user_name})
-        g.conn.commit()
-      except Exception as e:
-        print("Error inserting post:", e)
+    error_message = None
+    if request.method == 'POST':
+        # Check if the request is for a new post or a reply
+        if 'title' in request.form:  # Adding a new post
+            title = request.form['title']
+            content = request.form['content']
+            user_name = request.form['user_name']
 
-    elif 'post_id' in request.form:  # Adding a reply to a post
-      post_id = request.form['post_id']
-      reply_content = request.form['reply_content']
-      reply_user_name = request.form['reply_user_name']
-      query = """
-                INSERT INTO Comments (Content, Date, User_Name, Post_ID)
-                VALUES (:reply_content, DATE_TRUNC('minute', CURRENT_TIMESTAMP), :reply_user_name, :post_id);
-            """
-      g.conn.execute(text(query),
-                     {"reply_content": reply_content, "reply_user_name": reply_user_name, "post_id": post_id})
-      g.conn.commit()
+            # Check if the user exists
+            user_check = g.conn.execute(text("SELECT 1 FROM Users WHERE User_Name = :user_name"), {"user_name": user_name}).fetchone()
+            if not user_check:
+                error_message = f"User '{user_name}' does not exist."
+            else:
+                query = """
+                    INSERT INTO Posts (Title, Content, Num_Likes, Date, User_Name)
+                    VALUES (:title, :content, 0, DATE_TRUNC('minute', CURRENT_TIMESTAMP), :user_name);
+                """
+                try:
+                    g.conn.execute(text(query), {"title": title, "content": content, "user_name": user_name})
+                    g.conn.commit()
+                except Exception as e:
+                    error_message = f"Error inserting post: {e}"
 
-    # Redirect to the feed page to refresh content
-    return redirect(url_for('feed'))
+        elif 'post_id' in request.form:  # Adding a reply to a post
+            post_id = request.form['post_id']
+            reply_content = request.form['reply_content']
+            reply_user_name = request.form['reply_user_name']
 
-  # Fetch all posts with their user details
-  post_query = """
+            # Check if the user exists
+            user_check = g.conn.execute(text("SELECT 1 FROM Users WHERE User_Name = :user_name"), {"user_name": reply_user_name}).fetchone()
+            if not user_check:
+                error_message = f"User '{reply_user_name}' does not exist."
+            else:
+                query = """
+                    INSERT INTO Comments (Content, Date, User_Name, Post_ID)
+                    VALUES (:reply_content, DATE_TRUNC('minute', CURRENT_TIMESTAMP), :reply_user_name, :post_id);
+                """
+                g.conn.execute(text(query), {"reply_content": reply_content, "reply_user_name": reply_user_name, "post_id": post_id})
+                g.conn.commit()
+
+        # Redirect to the feed page to refresh content
+        if not error_message:
+            return redirect(url_for('feed'))
+
+    # Fetch all posts with their user details
+    post_query = """
         SELECT p.Post_ID, p.Title, p.Content, p.Num_Likes, p.Date, u.Name
         FROM Posts p
         JOIN Users u ON p.User_Name = u.User_Name
         ORDER BY p.Date DESC;
     """
-  posts = g.conn.execute(text(post_query)).fetchall()
+    posts = g.conn.execute(text(post_query)).fetchall()
 
-  # Fetch all replies associated with posts
-  comment_query = """
+    # Fetch all replies associated with posts
+    comment_query = """
         SELECT c.Post_ID, c.Content, c.Date, u.Name
         FROM Comments c
         JOIN Users u ON c.User_Name = u.User_Name
         ORDER BY c.Date ASC;
     """
-  comments = g.conn.execute(text(comment_query)).fetchall()
+    comments = g.conn.execute(text(comment_query)).fetchall()
 
-  # Organize comments by post for easy access in the template
-  comments_by_post = {}
-  for comment in comments:
-    post_id = comment[0]
-    if post_id not in comments_by_post:
-      comments_by_post[post_id] = []
-    comments_by_post[post_id].append(comment)
+    # Organize comments by post for easy access in the template
+    comments_by_post = {}
+    for comment in comments:
+        post_id = comment[0]
+        if post_id not in comments_by_post:
+            comments_by_post[post_id] = []
+        comments_by_post[post_id].append(comment)
 
-  return render_template('feed.html', posts=posts, comments_by_post=comments_by_post)
+    return render_template('feed.html', posts=posts, comments_by_post=comments_by_post, error_message=error_message)
 
 @app.route('/disease_info', methods=['GET', 'POST'])
 def disease_info():
@@ -390,69 +403,117 @@ def follows():
 # 6. User follow/unfollow
 @app.route('/follow_unfollow', methods=['GET', 'POST'])
 def follow_unfollow():
+    error_message = None
     if request.method == 'POST':
         username = request.form.get('username')
         disease_id = request.form.get('disease_id')
         action = request.form.get('action')
 
-        if action == 'follow' and disease_id:
-            # Follow the disease
-            follow_query = """
-                INSERT INTO Follows (User_Name, Disease_ID)
-                VALUES (:username, :disease_id)
-                ON CONFLICT DO NOTHING;
-            """  # Note: Need the ON CONFLICT DO NOTHING in case a user tries to follow a disease they already follow
-            g.conn.execute(text(follow_query), {"username": username, "disease_id": disease_id})
-            g.conn.commit()
-        elif action == 'unfollow' and disease_id:
-            # Unfollow the disease
-            unfollow_query = """
-                DELETE FROM Follows
-                WHERE User_Name = :username AND Disease_ID = :disease_id;
-            """
-            g.conn.execute(text(unfollow_query), {"username": username, "disease_id": disease_id})
-            g.conn.commit()
+        # Check if the user exists
+        user_check = g.conn.execute(text("SELECT 1 FROM Users WHERE User_Name = :username"), {"username": username}).fetchone()
+        if not user_check:
+            error_message = f"User '{username}' does not exist."
+        else:
+            if action == 'follow' and disease_id:
+                # Follow the disease
+                follow_query = """
+                    INSERT INTO Follows (User_Name, Disease_ID)
+                    VALUES (:username, :disease_id)
+                    ON CONFLICT DO NOTHING;
+                """
+                g.conn.execute(text(follow_query), {"username": username, "disease_id": disease_id})
+                g.conn.commit()
+            elif action == 'unfollow' and disease_id:
+                # Unfollow the disease
+                unfollow_query = """
+                    DELETE FROM Follows
+                    WHERE User_Name = :username AND Disease_ID = :disease_id;
+                """
+                g.conn.execute(text(unfollow_query), {"username": username, "disease_id": disease_id})
+                g.conn.commit()
 
     # Query to get all diseases for the dropdown
     diseases_query = "SELECT Disease_ID, Name FROM Diseases ORDER BY Name;"
     diseases = g.conn.execute(text(diseases_query)).fetchall()
-
-    return render_template('follow_unfollow.html', diseases=diseases)
+    return render_template('follow_unfollow.html', diseases=diseases, error_message=error_message)
 
 # 7. User favorite/unfavorite
 @app.route('/favorite_unfavorite', methods=['GET', 'POST'])
 def favorite_unfavorite():
+    error_message = None
     if request.method == 'POST':
         username = request.form.get('username')
         state_name = request.form.get('state_name')
         action = request.form.get('action')
 
-        if isinstance(state_name, tuple):
-            state_name = state_name[0]
-
-        if action == 'favorite' and state_name:
-            # Favorite the state
-            favorite_query = """
-                INSERT INTO Favorites (User_Name, State_Name)
-                VALUES (:username, :state_name)
-                ON CONFLICT DO NOTHING;
-            """
-            g.conn.execute(text(favorite_query), {"username": username, "state_name": state_name})
-            g.conn.commit()
-        elif action == 'unfavorite' and state_name:
-            # Unfavorite the state
-            unfavorite_query = """
-                DELETE FROM Favorites
-                WHERE User_Name = :username AND State_Name = :state_name;
-            """
-            g.conn.execute(text(unfavorite_query), {"username": username, "state_name": state_name})
-            g.conn.commit()
+        # Check if the user exists
+        user_check = g.conn.execute(text("SELECT 1 FROM Users WHERE User_Name = :username"), {"username": username}).fetchone()
+        if not user_check:
+            error_message = f"User '{username}' does not exist."
+        else:
+            if action == 'favorite' and state_name:
+                # Favorite the state
+                favorite_query = """
+                    INSERT INTO Favorites (User_Name, State_Name)
+                    VALUES (:username, :state_name)
+                    ON CONFLICT DO NOTHING;
+                """
+                g.conn.execute(text(favorite_query), {"username": username, "state_name": state_name})
+                g.conn.commit()
+            elif action == 'unfavorite' and state_name:
+                # Unfavorite the state
+                unfavorite_query = """
+                    DELETE FROM Favorites
+                    WHERE User_Name = :username AND State_Name = :state_name;
+                """
+                g.conn.execute(text(unfavorite_query), {"username": username, "state_name": state_name})
+                g.conn.commit()
 
     # Query to get all states for the dropdown
     states_query = "SELECT State_Name FROM States ORDER BY State_Name;"
     states = g.conn.execute(text(states_query)).fetchall()
 
-    return render_template('favorite_unfavorite.html', states=states)
+    return render_template('favorite_unfavorite.html', states=states, error_message=error_message)
+
+# 8. Create New User
+@app.route('/create_user', methods=['GET', 'POST'])
+def create_user():
+    error_message = None
+    success_message = None
+
+    if request.method == 'POST':
+        # Retrieve form data
+        username = request.form.get('username')
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+
+        # Basic validation check
+        if not username or not name or not email or not phone:
+            error_message = "All fields are required."
+        else:
+            # Check if username already exists
+            user_check = g.conn.execute(text("SELECT 1 FROM Users WHERE User_Name = :username"),
+                                        {"username": username}).fetchone()
+
+            if user_check:
+                error_message = f"User '{username}' already exists."
+            else:
+                # Insert new user
+                insert_query = """
+                    INSERT INTO Users (User_Name, Name, Email, Phone)
+                    VALUES (:username, :name, :email, :phone)
+                """
+                try:
+                    g.conn.execute(text(insert_query),
+                                   {"username": username, "name": name, "email": email, "phone": phone})
+                    g.conn.commit()
+                    success_message = f"User '{username}' created successfully."
+                except Exception as e:
+                    print("Error inserting new user:", e)
+                    error_message = "An error occurred while creating the user."
+
+    return render_template('create_user.html', error_message=error_message, success_message=success_message)
 
 @app.route('/login')
 def login():
