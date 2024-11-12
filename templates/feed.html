@@ -9,6 +9,11 @@
     <center>
     <h1>User Feed</h1>
 
+    <!-- Display error message if it exists -->
+    {% if error_message %}
+        <div style="color: red; font-weight: bold; margin-bottom: 15px;">{{ error_message }}</div>
+    {% endif %}
+
     <!-- Form to Add a New Post -->
     <h2>Create a New Post</h2>
     <form method="POST">
