@@ -6,7 +6,7 @@
 ---
 
 ## Overview
-**HealthHub** is a web application designed to help users monitor diseases in specific states and engage in discussions about health-related topics. Users can:  
+**HealthHub** is a web application implemented in Python with Flask designed to help users monitor diseases in specific states and engage in discussions about health-related topics. Users can:  
 - Track diseases and the states they are interested in.  
 - Post questions to a discussion board and reply to others.  
 - View statistics, including the number and type of diseases in each state.  
